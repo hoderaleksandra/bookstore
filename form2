@@ -1,0 +1,737 @@
+---------------------------------------------FORM 2 ---------------------------------------------------------------------------
+Imports System.Data
+Imports MySql.Data.MySqlClient
+Imports System.IO
+
+Public Class FBibliotekaPracownik
+
+    Dim conBG As New MySql.Data.MySqlClient.MySqlConnection("server=localhost;uid=root;pwd=Biblioteka1;database=bibliotekaglowna")
+    Dim conBW As New MySql.Data.MySqlClient.MySqlConnection("server=localhost;uid=root;pwd=Biblioteka1;database=bibliotekawojewodzka")
+    Dim dtDaneBG As New DataSet("ksiazki_bg")
+    Dim dtDaneBW As New DataSet("ksiazki_bw")
+    Dim rekord_nr As Integer = 0
+    Dim dtable As New DataTable
+    Dim dtView As DataView
+    Dim dtRow As DataRow
+    Dim wiersz As Integer
+
+    Private Sub polacz_z_BG()
+
+        Dim myConnectionString As String
+        myConnectionString = "server=localhost;uid=root;pwd=Biblioteka1;database=bibliotekaglowna"
+        ' TxtConnection.Clear()
+        conBW.Close()
+        Try
+            conBG.ConnectionString = myConnectionString
+            conBG.Open()
+        Catch ex As Exception
+            MessageBox.Show("Błąd połączenia z Bazą Danych", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+    Private Sub polacz_z_BW()
+
+        Dim myConnectionString As String
+        myConnectionString = "server=localhost;uid=root;pwd=Biblioteka1;database=bibliotekawojewodzka"
+        ' TxtConnection.Clear()
+        conBG.Close()
+        Try
+            conBW.ConnectionString = myConnectionString
+            conBW.Open()
+        Catch ex As Exception
+            MessageBox.Show("Błąd połączenia z Bazą Danych", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+    Private Sub czysc_wpis()
+
+        TxtGatunek.Text = ""
+        TxtAutor.Text = ""
+        TxtTytul.Text = ""
+        TxtNrPoz.Text = ""
+        TxtWydawnictwo.Text = ""
+        PB_dodaj.Image = Nothing
+
+    End Sub
+    Private Sub wyswietl_rekord_BG(ByVal wiersz As Integer)
+
+        Dim arrImage() As Byte
+
+        If wiersz >= 0 Then
+            dtable = dtDaneBG.Tables("ksiazki_bg")
+            dtRow = dtable.Rows(wiersz)
+            Txt_ksiazka_id.Text = dtRow.Item(0)
+            TxtEditGatunek.Text = dtRow.Item(1)
+            TxtEditAutor.Text = dtRow.Item(2)
+            TxtEditTytul.Text = dtRow.Item(3)
+            TxtEditNrPoz.Text = dtRow.Item(4)
+            TxtEditWyd.Text = dtRow.Item(5)
+            arrImage = dtRow.Item(6)
+            Dim mstream As New System.IO.MemoryStream(arrImage)
+            PB_Edytuj.Image = Image.FromStream(mstream)
+        End If
+
+    End Sub
+    Private Sub odczyt_do_edycji_BG(ByVal rekord_nr As Integer)
+
+        Dim strSQL As String
+        Dim objadapter As MySqlDataAdapter
+        strSQL = "select * from ksiazki_bg"
+
+        objadapter = New MySqlDataAdapter(strSQL, conBG)
+        If conBG.State = ConnectionState.Open Then
+            Try
+                dtDaneBG.Clear()
+                objadapter.Fill(dtDaneBG, "ksiazki_bg")
+            Catch ex As System.Exception
+                MessageBox.Show("Odczyt z bazy nie jest możliwy", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Finally
+                conBG.Close()
+            End Try
+        End If
+
+        If dtDaneBG.Tables("ksiazki_bg").Rows.Count = 0 Then
+            MessageBox.Show("Baza pusta - brak rekordów", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            BtnPrevious.Enabled = False
+            BtnNext.Enabled = False
+            BtnDelete.Enabled = False
+            BtnSaveChanges.Enabled = False
+            wyswietl_rekord_BG(-1)
+            Exit Sub
+        Else
+            BtnPrevious.Enabled = True
+            BtnNext.Enabled = True
+            BtnDelete.Enabled = True
+            BtnSaveChanges.Enabled = True
+            wyswietl_rekord_BG(rekord_nr)
+        End If
+
+    End Sub
+    Private Sub wyswietl_rekord_BW(ByVal wiersz As Integer)
+
+        Dim arrImage() As Byte
+
+        If wiersz >= 0 Then
+            dtable = dtDaneBW.Tables("ksiazki_bw")
+            dtRow = dtable.Rows(wiersz)
+            Txt_ksiazka_id.Text = dtRow.Item(0)
+            TxtEditGatunek.Text = dtRow.Item(1)
+            TxtEditAutor.Text = dtRow.Item(2)
+            TxtEditTytul.Text = dtRow.Item(3)
+            TxtEditNrPoz.Text = dtRow.Item(4)
+            TxtEditWyd.Text = dtRow.Item(5)
+            arrImage = dtRow.Item(6)
+            Dim mstream As New System.IO.MemoryStream(arrImage)
+            PB_Edytuj.Image = Image.FromStream(mstream)
+        End If
+    End Sub
+    Private Sub odczyt_do_edycji_BW(ByVal rekord_nr As Integer)
+
+        Dim strSQL As String
+        Dim objadapter As MySqlDataAdapter
+        strSQL = "select * from ksiazki_bw"
+
+        objadapter = New MySqlDataAdapter(strSQL, conBW)
+        If conBW.State = ConnectionState.Open Then
+            Try
+                dtDaneBW.Clear()
+                objadapter.Fill(dtDaneBW, "ksiazki_bw")
+            Catch ex As System.Exception
+                MessageBox.Show("Odczyt z bazy nie jest możliwy", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Finally
+                conBW.Close()
+            End Try
+        End If
+
+        If dtDaneBW.Tables("ksiazki_bw").Rows.Count = 0 Then
+            MessageBox.Show("Baza pusta - brak rekordów", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            BtnPrevious.Enabled = False
+            BtnNext.Enabled = False
+            BtnDelete.Enabled = False
+            BtnSaveChanges.Enabled = False
+            wyswietl_rekord_BW(-1)
+            Exit Sub
+        Else
+            BtnPrevious.Enabled = True
+            BtnNext.Enabled = True
+            BtnDelete.Enabled = True
+            BtnSaveChanges.Enabled = True
+            wyswietl_rekord_BW(rekord_nr)
+        End If
+
+    End Sub
+    Private Function ile_rekordow_BG() As Integer
+
+        Dim dtDane As New DataSet("ksiazki_bg")
+
+        Dim strSQL As String
+        dtDane.Clear()
+        strSQL = "select * from ksiazki_bg"
+        Dim objadapter As New MySql.Data.MySqlClient.MySqlDataAdapter(strSQL, conBG)
+        If conBG.State = ConnectionState.Open Then
+            Try
+                objadapter.Fill(dtDane, "ksiazki_bg")
+                Return dtDane.Tables("ksiazki_bg").Rows.Count
+            Catch ex As Exception
+                MessageBox.Show("Odyczt z bazy nie jest możliwy", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Function
+
+    Private Function ile_rekordow_BW() As Integer
+
+        Dim dtDane As New DataSet("ksiazki_bw")
+
+        Dim strSQL As String
+        dtDane.Clear()
+        strSQL = "select * from ksiazki_bw"
+        Dim objadapter As New MySql.Data.MySqlClient.MySqlDataAdapter(strSQL, conBW)
+        If conBW.State = ConnectionState.Open Then
+            Try
+                objadapter.Fill(dtDane, "ksiazki_bw")
+                Return dtDane.Tables("ksiazki_bw").Rows.Count
+            Catch ex As Exception
+                MessageBox.Show("Odyczt z bazy nie jest możliwy", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Function
+
+
+    Private Sub BtnBrowse_Click(sender As Object, e As EventArgs) Handles BtnBrowse.Click
+
+        Try
+            With OpenFileDialog1
+                .CheckFileExists = True
+                .CheckPathExists = True
+                .DefaultExt = "jpg"
+                .DereferenceLinks = True
+                .FileName = ""
+                .Filter = "(*.jpg)|*.jpg|(*.png)|*.png|(*.jpg)|*.jpg|All files|*.*"
+                .Multiselect = False
+                .RestoreDirectory = True
+                .Title = "Select a file to open"
+                .ValidateNames = True
+                If .ShowDialog = DialogResult.OK Then
+                    Try
+                        PB_dodaj.Image = Image.FromFile(OpenFileDialog1.FileName)
+                    Catch fileException As Exception
+                        Throw fileException
+                    End Try
+                End If
+            End With
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.Exclamation, Me.Text)
+        End Try
+
+    End Sub
+    Private Sub zapisz_BG()
+
+        Dim cmd As MySqlCommand
+        Dim strWpis As String
+        Dim result As Integer
+        Dim arrImage() As Byte
+        Dim mstream As New System.IO.MemoryStream()
+        PB_dodaj.Image.Save(mstream, System.Drawing.Imaging.ImageFormat.Jpeg)
+
+        arrImage = mstream.GetBuffer()
+        Dim FileSize = mstream.Length
+        mstream.Close()
+
+        Try
+            If conBG.State = ConnectionState.Closed Then
+                polacz_z_BG()
+            End If
+            strWpis = "INSERT INTO ksiazki_bg (gatunek, autor, tytul, nr_pozycji, wydawnictwo, ksiazka_img) VALUES (@gatunek, @autor, @tytul, @nr_pozycji, @wydawnictwo, @ksiazka_img )"
+            cmd = New MySqlCommand
+            With cmd
+                .Connection = conBG
+                .CommandText = strWpis
+                .Parameters.AddWithValue("@gatunek", TxtGatunek.Text)
+                .Parameters.AddWithValue("@autor", TxtAutor.Text)
+                .Parameters.AddWithValue("@tytul", TxtTytul.Text)
+                .Parameters.AddWithValue("@nr_pozycji", TxtNrPoz.Text)
+                .Parameters.AddWithValue("@wydawnictwo", TxtWydawnictwo.Text)
+                .Parameters.AddWithValue("@ksiazka_img", arrImage)
+                result = .ExecuteNonQuery()
+            End With
+            If result > 0 Then
+                Lbl_licz_rekord.Text = "W bazie znajduje się " & ile_rekordow_BG() & " książek"
+                MsgBox("Rekord został dodany do Bazy Danych")
+            Else
+                MsgBox("Error query", MsgBoxStyle.Exclamation)
+            End If
+        Catch ex As Exception
+            MsgBox(ex.Message)
+        Finally
+            conBG.Close()
+        End Try
+
+    End Sub
+    Private Sub zapisz_BW()
+
+        Dim cmd As MySqlCommand
+        Dim strWpis As String
+        Dim result As Integer
+        Dim arrImage() As Byte
+        Dim mstream As New System.IO.MemoryStream()
+        PB_dodaj.Image.Save(mstream, System.Drawing.Imaging.ImageFormat.Jpeg)
+
+        arrImage = mstream.GetBuffer()
+        Dim FileSize = mstream.Length
+        mstream.Close()
+
+        Try
+            If conBW.State = ConnectionState.Closed Then
+                polacz_z_BW()
+                Lbl_licz_rekord.Text = "W bazie znajduje się " & ile_rekordow_BW() & " książek"
+            End If
+            strWpis = "INSERT INTO ksiazki_bw (gatunek, autor, tytul, nr_pozycji, wydawnictwo, ksiazka_img) VALUES (@gatunek, @autor, @tytul, @nr_pozycji, @wydawnictwo, @ksiazka_img )"
+            cmd = New MySqlCommand
+            With cmd
+                .Connection = conBW
+                .CommandText = strWpis
+                .Parameters.AddWithValue("@gatunek", TxtGatunek.Text)
+                .Parameters.AddWithValue("@autor", TxtAutor.Text)
+                .Parameters.AddWithValue("@tytul", TxtTytul.Text)
+                .Parameters.AddWithValue("@nr_pozycji", TxtNrPoz.Text)
+                .Parameters.AddWithValue("@wydawnictwo", TxtWydawnictwo.Text)
+                .Parameters.AddWithValue("@ksiazka_img", arrImage)
+                result = .ExecuteNonQuery()
+            End With
+            If result > 0 Then
+                Lbl_licz_rekord.Text = "W bazie znajduje się " & ile_rekordow_BW() & " książek"
+                MsgBox("Rekord został dodany do Bazy Danych")
+            Else
+                MsgBox("Error query", MsgBoxStyle.Exclamation)
+            End If
+        Catch ex As Exception
+            MsgBox(ex.Message)
+        Finally
+            conBW.Close()
+        End Try
+
+    End Sub
+    Private Sub edytuj_BG()
+
+        Dim cmd As New MySqlCommand
+        Dim strEdit As String
+        Dim result As Integer
+        Dim arrImage() As Byte
+        Dim mstream As New System.IO.MemoryStream()
+        PB_Edytuj.Image.Save(mstream, System.Drawing.Imaging.ImageFormat.Jpeg)
+
+        arrImage = mstream.GetBuffer()
+        Dim FileSize = mstream.Length
+        mstream.Close()
+
+        If conBG.State = ConnectionState.Closed Then
+            polacz_z_BG()
+        End If
+
+        strEdit = "UPDATE ksiazki_bg SET gatunek=@gatunek, autor=@autor, tytul=@tytul, nr_pozycji=@nr_pozycji, wydawnictwo=@wydawnictwo, ksiazka_img=@ksiazka_img WHERE ksiazka_id =" & Txt_ksiazka_id.Text & ""
+
+        If conBG.State = ConnectionState.Open Then
+
+            Try
+
+                cmd = New MySqlCommand
+                With cmd
+                    .Connection = conBG
+                    .CommandText = strEdit
+                    .Parameters.AddWithValue("@gatunek", TxtEditGatunek.Text)
+                    .Parameters.AddWithValue("@autor", TxtEditAutor.Text)
+                    .Parameters.AddWithValue("@tytul", TxtEditTytul.Text)
+                    .Parameters.AddWithValue("@nr_pozycji", TxtEditNrPoz.Text)
+                    .Parameters.AddWithValue("@wydawnictwo", TxtEditWyd.Text)
+                    .Parameters.AddWithValue("@ksiazka_img", arrImage)
+                    result = .ExecuteNonQuery()
+                    odczyt_do_edycji_BG(rekord_nr)
+                End With
+                MessageBox.Show("Rekord został zaktualizowany", "Informacja", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Catch ex As Exception
+                MessageBox.Show("Bład podczas aktualizacji danych", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Finally
+                conBG.Close()
+            End Try
+        End If
+
+    End Sub
+    Private Sub edytuj_BW()
+
+        Dim cmd As New MySqlCommand
+        Dim strEdit As String
+        Dim result As Integer
+        Dim arrImage() As Byte
+        Dim mstream As New System.IO.MemoryStream()
+        PB_Edytuj.Image.Save(mstream, System.Drawing.Imaging.ImageFormat.Jpeg)
+
+        arrImage = mstream.GetBuffer()
+        Dim FileSize = mstream.Length
+        mstream.Close()
+
+        If conBW.State = ConnectionState.Closed Then
+            polacz_z_BW()
+        End If
+
+        strEdit = "UPDATE ksiazki_bw SET gatunek=@gatunek, autor=@autor, tytul=@tytul, nr_pozycji=@nr_pozycji, wydawnictwo=@wydawnictwo, ksiazka_img=@ksiazka_img WHERE ksiazka_id =" & Txt_ksiazka_id.Text & ""
+
+        If conBW.State = ConnectionState.Open Then
+
+            Try
+
+                cmd = New MySqlCommand
+                With cmd
+                    .Connection = conBW
+                    .CommandText = strEdit
+                    .Parameters.AddWithValue("@gatunek", TxtEditGatunek.Text)
+                    .Parameters.AddWithValue("@autor", TxtEditAutor.Text)
+                    .Parameters.AddWithValue("@tytul", TxtEditTytul.Text)
+                    .Parameters.AddWithValue("@nr_pozycji", TxtEditNrPoz.Text)
+                    .Parameters.AddWithValue("@wydawnictwo", TxtEditWyd.Text)
+                    .Parameters.AddWithValue("@ksiazka_img", arrImage)
+                    result = .ExecuteNonQuery()
+                    odczyt_do_edycji_BW(rekord_nr)
+                End With
+                MessageBox.Show("Rekord został zaktualizowany", "Informacja", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Catch ex As Exception
+                MessageBox.Show("Bład podczas aktualizacji danych", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Finally
+                conBW.Close()
+            End Try
+        End If
+
+    End Sub
+    Private Sub usun_BG()
+
+        polacz_z_BG()
+        If conBG.State = ConnectionState.Open Then
+            If ile_rekordow_BG() > 0 Then
+                Dim pytanie As DialogResult
+                pytanie = MessageBox.Show("Czy chcesz skasować bieżący rekord?", "Usuwanie danych", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2)
+                If pytanie = DialogResult.Yes Then
+                    Dim strSQL As String
+                    strSQL = "DELETE FROM ksiazki_bg WHERE ksiazka_id= " & Txt_ksiazka_id.Text
+                    Try
+                        Dim objadapter As New MySql.Data.MySqlClient.MySqlCommand(strSQL, conBG)
+                        objadapter.ExecuteNonQuery()
+                        MessageBox.Show("Rekord został usunięty", "Informacja", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                        odczyt_do_edycji_BG(0)
+                    Catch ex As Exception
+                        MessageBox.Show("Bład podczas aktualizacji danych", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    Finally
+                        conBG.Close()
+                    End Try
+                End If
+            End If
+        Else
+            MessageBox.Show("Brak połaczenia z bazą", "Bład", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End If
+
+    End Sub
+    Private Sub usun_BW()
+
+        polacz_z_BW()
+
+        If conBW.State = ConnectionState.Open Then
+            If ile_rekordow_BW() > 0 Then
+                Dim pytanie As DialogResult
+                pytanie = MessageBox.Show("Czy chcesz skasować bieżący rekord?", "Usuwanie danych", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2)
+                If pytanie = DialogResult.Yes Then
+                    Dim strSQL As String
+                    strSQL = "DELETE FROM ksiazki_bw WHERE ksiazka_id= " & Txt_ksiazka_id.Text
+                    Try
+                        Dim objadapter As New MySql.Data.MySqlClient.MySqlCommand(strSQL, conBW)
+                        objadapter.ExecuteNonQuery()
+                        MessageBox.Show("Rekord został usunięty", "Informacja", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                        odczyt_do_edycji_BW(0)
+                    Catch ex As Exception
+                        MessageBox.Show("Bład podczas aktualizacji danych", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    Finally
+                        conBW.Close()
+                    End Try
+                End If
+            End If
+        Else
+            MessageBox.Show("Brak połaczenia z bazą", "Bład", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End If
+
+    End Sub
+    Private Sub BtnSave_Click(sender As System.Object, e As System.EventArgs) Handles BtnSave.Click
+
+        If TxtGatunek.Text.Length = 0 Then
+            MessageBox.Show("Proszę uzupełnić brakujące dane", "Brak danych", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtGatunek.Focus()
+            Exit Sub
+        End If
+
+        If TxtAutor.Text.Length = 0 Then
+            MessageBox.Show("Proszę uzupełnić brakujące dane", "Brak danych", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtAutor.Focus()
+            Exit Sub
+        End If
+
+        If TxtTytul.Text.Length = 0 Then
+            MessageBox.Show("Proszę uzupełnić brakujące dane", "Brak danych", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtTytul.Focus()
+            Exit Sub
+        End If
+
+        If TxtNrPoz.Text.Length = 0 OrElse Not IsNumeric(TxtNrPoz.Text) Then
+            MessageBox.Show("Proszę uzupełnić brakujące dane, nr_pozycji", "Brak danych", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtNrPoz.Focus()
+            Exit Sub
+        End If
+
+        If TxtWydawnictwo.Text.Length = 0 Then
+            MessageBox.Show("Proszę uzupełnić brakujące dane", "Brak danych", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtWydawnictwo.Focus()
+            Exit Sub
+        End If
+
+        If PB_dodaj.Image Is Nothing Then
+            MessageBox.Show("Proszę uzupełnić brakujące dane, brak obrazka", "Brak danych", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtWydawnictwo.Focus()
+            Exit Sub
+        End If
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 0 Then
+            If conBG.State = ConnectionState.Closed Then
+                conBW.Close()
+                polacz_z_BG()
+            End If
+            zapisz_BG()
+            czysc_wpis()
+        End If
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 1 Then
+            If conBW.State = ConnectionState.Closed Then
+                conBG.Close()
+                polacz_z_BW()
+            End If
+            zapisz_BW()
+            czysc_wpis()
+        End If
+
+    End Sub
+    Private Sub Btn_Browse_Click(sender As Object, e As EventArgs) Handles Btn_Browse.Click
+        Try
+            With OpenFileDialog1
+                .CheckFileExists = True
+                .CheckPathExists = True
+                .DefaultExt = "jpg"
+                .DereferenceLinks = True
+                .FileName = ""
+                .Filter = "(*.jpg)|*.jpg|(*.png)|*.png|(*.jpg)|*.jpg|All files|*.*"
+                .Multiselect = False
+                .RestoreDirectory = True
+                .Title = "Select a file to open"
+                .ValidateNames = True
+                If .ShowDialog = DialogResult.OK Then
+                    Try
+                        PB_Edytuj.Image = Image.FromFile(OpenFileDialog1.FileName)
+                    Catch fileException As Exception
+                        Throw fileException
+                    End Try
+                End If
+            End With
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.Exclamation, Me.Text)
+        End Try
+    End Sub
+    Private Sub BtnClear_Click(sender As Object, e As EventArgs) Handles BtnClear.Click
+        czysc_wpis()
+    End Sub
+    Private Sub TabKatalog_SelectedIndexChanged(sender As Object, e As EventArgs) Handles TabEdit.SelectedIndexChanged
+
+        If TabEdit.SelectedIndex = 1 And FBiblioteka.CB_DataBase_Select.SelectedIndex = 0 Then
+
+            polacz_z_BG()
+            rekord_nr = 0
+            odczyt_do_edycji_BG(0)
+
+        End If
+
+        If TabEdit.SelectedIndex = 1 And FBiblioteka.CB_DataBase_Select.SelectedIndex = 1 Then
+
+            polacz_z_BW()
+            rekord_nr = 0
+            odczyt_do_edycji_BW(0)
+
+        End If
+
+    End Sub
+
+
+    Private Sub BtnPrevious_Click(sender As Object, e As EventArgs) Handles BtnPrevious.Click
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 0 Then
+
+            If rekord_nr > 0 Then
+                rekord_nr -= 1
+                wyswietl_rekord_BG(rekord_nr)
+            Else
+                MessageBox.Show("Pierwszy rekord - przejście dalej nie jest możliwe", "Uwaga", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End If
+        End If
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 1 Then
+
+            If rekord_nr > 0 Then
+                rekord_nr -= 1
+                wyswietl_rekord_BW(rekord_nr)
+            Else
+                MessageBox.Show("Pierwszy rekord - przejście dalej nie jest możliwe", "Uwaga", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End If
+        End If
+    End Sub
+
+    Private Sub BtnNext_Click(sender As Object, e As EventArgs) Handles BtnNext.Click
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 0 Then
+            If rekord_nr < dtDaneBG.Tables("ksiazki_bg").Rows.Count - 1 Then
+                rekord_nr += 1
+                wyswietl_rekord_BG(rekord_nr)
+            Else
+                MessageBox.Show("Ostatni rekord - przejście dalej nie jest możliwe", "Uwaga", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End If
+        End If
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 1 Then
+            If rekord_nr < dtDaneBW.Tables("ksiazki_bw").Rows.Count - 1 Then
+                rekord_nr += 1
+                wyswietl_rekord_BW(rekord_nr)
+            Else
+                MessageBox.Show("Ostatni rekord - przejście dalej nie jest możliwe", "Uwaga", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End If
+        End If
+    End Sub
+    Private Sub BtnFirst_Click(sender As Object, e As EventArgs) Handles BtnFirst.Click
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 0 Then
+
+            If rekord_nr > 0 Then
+                rekord_nr = 0
+                wyswietl_rekord_BG(rekord_nr)
+            Else
+                MessageBox.Show("Pierwszy rekord - przejście dalej nie jest możliwe", "Uwaga", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End If
+        End If
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 1 Then
+
+            If rekord_nr > 0 Then
+                rekord_nr = 0
+                wyswietl_rekord_BW(rekord_nr)
+            Else
+                MessageBox.Show("Ostatni rekord - przejście dalej nie jest możliwe", "Uwaga", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End If
+        End If
+    End Sub
+
+    Private Sub BtnLast_Click(sender As Object, e As EventArgs) Handles BtnLast.Click
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 0 Then
+
+            If rekord_nr >= 0 Then
+                rekord_nr = dtDaneBG.Tables("ksiazki_bg").Rows.Count - 1
+                wyswietl_rekord_BG(rekord_nr)
+            Else
+                MessageBox.Show("Ostatni rekord - przejście dalej nie jest możliwe", "Uwaga", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End If
+        End If
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 1 Then
+
+            If rekord_nr >= 0 Then
+                rekord_nr = dtDaneBW.Tables("ksiazki_bw").Rows.Count - 1
+                wyswietl_rekord_BW(rekord_nr)
+            Else
+                MessageBox.Show("Ostatni rekord - przejście dalej nie jest możliwe", "Uwaga", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End If
+        End If
+
+    End Sub
+
+    Private Sub BtnSaveChanges_Click(sender As Object, e As EventArgs) Handles BtnSaveChanges.Click
+
+        If Txt_ksiazka_id.Text.Length = 0 OrElse Not IsNumeric(Txt_ksiazka_id.Text) Then
+            MessageBox.Show("Błędny wpis", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Txt_ksiazka_id.Focus()
+            Exit Sub
+        End If
+
+        If TxtEditGatunek.Text.Length = 0 Then
+            MessageBox.Show("Błędny wpis", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtEditGatunek.Focus()
+            Exit Sub
+        End If
+        If TxtEditAutor.Text.Length = 0 Then
+            MessageBox.Show("Błędny wpis", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtEditAutor.Focus()
+            Exit Sub
+        End If
+        If TxtEditTytul.Text.Length = 0 Then
+            MessageBox.Show("Błędny wpis", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtEditTytul.Focus()
+            Exit Sub
+        End If
+        If TxtEditNrPoz.Text.Length = 0 OrElse Not IsNumeric(TxtEditNrPoz.Text) Then
+            MessageBox.Show("Błędny wpis", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtEditNrPoz.Focus()
+            Exit Sub
+        End If
+
+        If TxtEditWyd.Text.Length = 0 Then
+            MessageBox.Show("Błędny wpis", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            TxtEditWyd.Focus()
+            Exit Sub
+        End If
+
+        If PB_Edytuj.Image Is Nothing Then
+            MessageBox.Show("Błędny wpis", "Brak danych", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            PB_Edytuj.Focus()
+            Exit Sub
+        End If
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 0 Then
+
+            edytuj_BG()
+
+        End If
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 1 Then
+
+            edytuj_BW()
+
+        End If
+
+    End Sub
+
+    Private Sub BtnDelete_Click(sender As Object, e As EventArgs) Handles BtnDelete.Click
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 0 Then
+
+            usun_BG()
+
+        End If
+
+        If FBiblioteka.CB_DataBase_Select.SelectedIndex = 1 Then
+
+            usun_BW()
+
+        End If
+
+    End Sub
+
+
+End Class
+© 2022 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
